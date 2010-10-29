@@ -30,8 +30,8 @@ class Pacman(Bcfg2.Client.Tools.PkgTool):
     def VerifyPackage(self, entry, modlist):
         '''Verify Package status for entry'''
 
-        self.logger.info("VerifyPackage : %s : %s" % entry.get('name'),
-                                                     entry.get('version'))
+        self.logger.info("VerifyPackage : %s " % entry.get('name'));
+#" % entry.get('name'), entry.get('version'))
 
         if not 'version' in entry.attrib:
             self.logger.info("Cannot verify unversioned package %s" %

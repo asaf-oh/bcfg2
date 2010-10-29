@@ -526,7 +526,6 @@ class PACSource(Source):
                 bdeps[barch] = dict()
                 bprov[barch] = dict()
             try:
-                print "try to read : " + fname
                 tar = tarfile.open(fname, "r")
                 reader = gzip.GzipFile(fname)
             except:
@@ -535,8 +534,22 @@ class PACSource(Source):
 
             for tarinfo in tar:
                 if tarinfo.isdir():
-                    self.pkgnames.add(tarinfo.name.rsplit("-",2)[0])
-                    print "added : " + tarinfo.name.rsplit("-",2)[0]
+                    pkgname = tarinfo.name.rsplit("-",2)[0];
+                    self.pkgnames.add(pkgname)
+                    depfile = tar.extractfile("%s/depends" % tarinfo.name)
+                    
+                    op=""
+                    for line in depfile.readlines():
+                        if len(line.strip()) == 0:
+                            op=""
+                        if line.strip().startswith("%DEPENDS%"):
+                            op="deps"
+                        elif line.strip().startswith("%CONFLICTS%"):
+                            op="conflicts"
+#                        else:
+#                            if op.startswith("deps"):
+#                                bdeps[barch][pkgname] = line
+
             tar.close()
 
         self.deps['global'] = dict()
@@ -572,6 +585,8 @@ class PACSource(Source):
         self.save_state()
 
     def is_package(self, _, pkg):
+        print "PACSource : is_package : " + pkg
+        
         return pkg in self.pkgnames and \
                pkg not in self.blacklist and \
                (len(self.whitelist) == 0 or pkg in self.whitelist)
@@ -683,6 +698,9 @@ class Packages(Bcfg2.Server.Plugin.Plugin,
                 really_done = True
 
             while unclassified:
+                print "unclassified X : " + unclassified.pop()
+
+            while unclassified:                
                 current = unclassified.pop()
                 examined.add(current)
                 is_pkg = True in [source.is_package(meta, current) for source in sources]
